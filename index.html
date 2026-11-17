@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Interactivo: Memorama Igualdad Laboral y No Discriminación</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-terracota: #D95D39;
+      --color-terracota-light: #FFF3EF;
+      --color-azul: #1B4965;
+      --color-azul-light: #EFF6FA;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #F1F5F9;
+      color: #1E293B;
+    }
+
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    /* Perspectiva y animación 3D de volteo */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-style: preserve-3d;
+    }
+
+    .card-flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Proporción naipe grande 8x11 */
+    .card-proportion {
+      aspect-ratio: 8 / 11;
+    }
+
+    /* Animaciones de retroalimentación */
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-modal {
+      animation: popIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    .animate-shake {
+      animation: shake 0.35s ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Encabezado Institucional del Simulador -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-[#1B4965] text-white flex items-center justify-center shadow-sm shrink-0">
+          <!-- Ícono Balanza de Igualdad -->
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">Simulador en Vivo</span>
+            <span class="text-xs font-semibold text-slate-400 hidden sm:inline">• Capacitación Operativa</span>
+          </div>
+          <h1 class="text-base sm:text-xl font-extrabold text-[#1B4965] leading-tight mt-0.5">
+            Memorama: Igualdad Laboral y No Discriminación
+          </h1>
+        </div>
+      </div>
+
+      <!-- Controles Rápidos del Facilitador -->
+      <div class="flex flex-wrap items-center justify-center gap-2 w-full md:w-auto">
+        <button id="btn-peek" onclick="triggerQuickPeek()" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs sm:text-sm rounded-xl transition flex items-center gap-1.5 cursor-pointer" title="Muestra todas las tarjetas durante 4 segundos para ayudar al grupo">
+          <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          Vista Previa (4s)
+        </button>
+
+        <button onclick="initGame()" class="px-4 py-2 bg-[#D95D39] hover:bg-[#c24e2c] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Reiniciar Partida
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Área Principal del Juego -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
+
+    <!-- Panel de Marcadores e Instrucciones Visuales -->
+    <div class="bg-white rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-200 flex flex-col lg:flex-row items-center justify-between gap-4">
+      <!-- Código de Color -->
+      <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 text-xs sm:text-sm">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FFF3EF] text-[#D95D39] font-extrabold border border-[#D95D39]/30">
+          <span class="w-3.5 h-3.5 rounded-full bg-[#D95D39] shrink-0"></span>
+          <span>Tarjeta A: Situación Cotidiana</span>
+        </div>
+        <span class="font-extrabold text-slate-400">+</span>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#EFF6FA] text-[#1B4965] font-extrabold border border-[#1B4965]/30">
+          <span class="w-3.5 h-3.5 rounded-full bg-[#1B4965] shrink-0"></span>
+          <span>Tarjeta B: Concepto / Derecho</span>
+        </div>
+      </div>
+
+      <!-- Métricas de la Sesión -->
+      <div class="flex items-center gap-3 sm:gap-4 w-full lg:w-auto justify-center lg:justify-end">
+        <!-- Pares Encontrados -->
+        <div class="bg-slate-50 border border-slate-200/80 px-3.5 py-1.5 rounded-xl text-center min-w-[88px]">
+          <span class="block text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">Pares</span>
+          <span id="stat-pairs" class="text-base sm:text-lg font-black text-emerald-600">0 / 10</span>
+        </div>
+
+        <!-- Movimientos -->
+        <div class="bg-slate-50 border border-slate-200/80 px-3.5 py-1.5 rounded-xl text-center min-w-[88px]">
+          <span class="block text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">Intentos</span>
+          <span id="stat-attempts" class="text-base sm:text-lg font-black text-[#1B4965]">0</span>
+        </div>
+
+        <!-- Temporizador Opcional -->
+        <div class="bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl flex items-center gap-2">
+          <div class="text-center min-w-[60px]">
+            <span class="block text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">Tiempo</span>
+            <span id="stat-timer" class="text-base sm:text-lg font-black text-slate-700 font-mono">00:00</span>
+          </div>
+          <button id="btn-toggle-timer" onclick="toggleTimer()" class="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 transition cursor-pointer" title="Pausar / Reanudar reloj">
+            <svg id="icon-timer-pause" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <svg id="icon-timer-play" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra Dinámica de Retroalimentación para el Grupo -->
+    <div id="game-feedback" class="text-center text-xs sm:text-sm font-bold py-2.5 px-4 rounded-xl border bg-white text-slate-700 border-slate-200 shadow-2xs transition-all">
+      Selecciona una tarjeta <span class="text-[#D95D39]">Naranja (Situación)</span> y una tarjeta <span class="text-[#1B4965]">Azul (Concepto)</span> para formar un par.
+    </div>
+
+    <!-- Tablero de 20 Cartas (5x4 en pantallas grandes, 4x5 en tablet, 2x10 en móvil) -->
+    <div id="memory-board" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 pb-6">
+      <!-- Generado por JavaScript -->
+    </div>
+
+  </main>
+
+  <!-- ========================================================
+       MODAL DE REFLEXIÓN PEDAGÓGICA AL ENCONTRAR UN PAR
+       ======================================================== -->
+  <div id="match-modal" class="fixed inset-0 bg-slate-900/65 backdrop-blur-xs z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-modal my-auto">
+      <!-- Cabecera Verde de Acierto -->
+      <div class="bg-emerald-600 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div>
+            <span class="text-[11px] uppercase font-extrabold tracking-widest text-emerald-100 block">¡Par Correcto Identificado!</span>
+            <h3 id="modal-pair-title" class="text-lg sm:text-xl font-black leading-tight">Par 1: Invisibilización</h3>
+          </div>
+        </div>
+        <span id="modal-pair-badge" class="text-xs sm:text-sm font-black bg-white/20 px-3.5 py-1.5 rounded-full shrink-0">1 / 10</span>
+      </div>
+
+      <div class="p-5 sm:p-6 space-y-5">
+        <!-- Comparativa Visual Lado a Lado de Ambas Tarjetas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Tarjeta A (Situación) -->
+          <div class="bg-[#FFF3EF] border-2 border-[#D95D39] rounded-2xl p-3.5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span id="modal-sit-code" class="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#D95D39] text-white">Situación • 1A</span>
+            </div>
+            <div id="modal-sit-svg" class="w-full h-28 rounded-xl overflow-hidden bg-white border border-[#D95D39]/20 mb-2.5">
+              <!-- SVG dinámico -->
+            </div>
+            <p id="modal-sit-quote" class="font-extrabold text-sm text-[#D95D39] text-center italic mb-1">“Buenos días...”</p>
+            <p id="modal-sit-desc" class="text-xs font-bold text-slate-700 text-center leading-snug">Ignorar el saludo o tratar como invisible al personal.</p>
+          </div>
+
+          <!-- Tarjeta B (Concepto) -->
+          <div class="bg-[#EFF6FA] border-2 border-[#1B4965] rounded-2xl p-3.5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span id="modal-con-code" class="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#1B4965] text-white">Concepto • 1B</span>
+            </div>
+            <div id="modal-con-svg" class="w-full h-28 rounded-xl overflow-hidden bg-white border border-[#1B4965]/20 mb-2.5 flex items-center justify-center">
+              <!-- SVG dinámico -->
+            </div>
+            <h4 id="modal-con-title" class="font-heading font-black text-sm text-[#1B4965] text-center uppercase mb-1">DISCRIMINACIÓN POR PUESTO</h4>
+            <p id="modal-con-desc" class="text-xs font-bold text-slate-700 text-center leading-snug">Todas las personas merecen el mismo respeto y saludo.</p>
+          </div>
+        </div>
+
+        <!-- Pregunta Detonadora para el Grupo -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-2xl space-y-1.5">
+          <div class="flex items-center gap-2 text-amber-800 font-black text-xs uppercase tracking-wider">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+            </svg>
+            Pregunta detonadora para el grupo (10 segundos)
+          </div>
+          <p id="modal-question" class="text-sm sm:text-base font-extrabold text-slate-800 leading-snug">
+            ¿A dónde acudirías en nuestro centro de trabajo si ves que pasa esto?
+          </p>
+          <p class="text-[11px] font-semibold text-amber-900/80 pt-1">
+            Tip para quien facilita: Invita a mencionar el Comité de Ética, el Buzón de Quejas o a la Persona Consejera de la institución.
+          </p>
+        </div>
+
+        <div class="flex justify-end">
+          <button onclick="closeMatchModal()" class="w-full sm:w-auto px-7 py-3 bg-[#1B4965] hover:bg-[#13354a] text-white font-extrabold text-sm rounded-xl shadow-sm transition cursor-pointer">
+            Continuar Jugando →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL DE VICTORIA AL COMPLETAR LOS 10 PARES
+       ======================================================== -->
+  <div id="win-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 p-6 sm:p-7 text-center space-y-5 animate-modal">
+      <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+        <svg class="w-11 h-11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+
+      <div>
+        <span class="text-xs font-extrabold uppercase tracking-widest text-emerald-600">¡Misión Cumplida!</span>
+        <h3 class="text-2xl font-black text-[#1B4965] mt-0.5">¡Excelente Trabajo en Equipo!</h3>
+        <p class="text-sm text-slate-600 mt-1.5">
+          Identificaron correctamente las 10 situaciones cotidianas y los derechos que nos protegen en el trabajo.
+        </p>
+      </div>
+
+      <!-- Resumen de Desempeño -->
+      <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 grid grid-cols-3 gap-2">
+        <div>
+          <span class="block text-[10px] text-slate-500 font-extrabold uppercase">Pares</span>
+          <span class="text-lg sm:text-xl font-black text-emerald-600">10 / 10</span>
+        </div>
+        <div class="border-x border-slate-200">
+          <span class="block text-[10px] text-slate-500 font-extrabold uppercase">Intentos</span>
+          <span id="win-attempts" class="text-lg sm:text-xl font-black text-[#1B4965]">0</span>
+        </div>
+        <div>
+          <span class="block text-[10px] text-slate-500 font-extrabold uppercase">Tiempo</span>
+          <span id="win-time" class="text-lg sm:text-xl font-black text-slate-700 font-mono">00:00</span>
+        </div>
+      </div>
+
+      <!-- Mensaje Institucional de Cierre -->
+      <div class="bg-[#EFF6FA] border border-[#1B4965]/20 rounded-2xl p-3.5 text-left">
+        <p class="text-xs text-[#1B4965] font-bold leading-relaxed">
+          🛡️ <strong>Compromiso Institucional:</strong> Todas las personas que laboramos aquí merecemos un trato digno, seguro y libre de discriminación. Si vives o presencias alguna de estas situaciones, acude al <strong>Comité de Ética</strong> o al área de <strong>Igualdad Laboral</strong>.
+        </p>
+      </div>
+
+      <button onclick="closeWinModal(); initGame();" class="w-full py-3.5 bg-[#D95D39] hover:bg-[#c24e2c] text-white font-extrabold text-sm rounded-xl shadow-md transition cursor-pointer">
+        Volver a Jugar con Otro Grupo
+      </button>
+    </div>
+  </div>
+
+  <!-- Pie de página discreto -->
+  <footer class="bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-500 mt-auto">
+    Herramienta interactiva de sensibilización • Basada en la Política de Igualdad Laboral y No Discriminación (CNDH / NMX-R-025-SCFI-2015).
+  </footer>
+
+  <!-- ========================================================
+       LÓGICA DEL SIMULADOR E ILUSTRACIONES SVG
+       ======================================================== -->
+  <script>
+    // Base de datos de los 10 pares (20 tarjetas)
+    const PAIRS_DATA = [
+      {
+        id: 1,
+        theme: "Invisibilización",
+        question: "¿Qué acciones sencillas podemos practicar todos los días para que nadie en el área de limpieza se sienta invisible?",
+        situation: {
+          code: "1A",
+          quote: "“Buenos días...”",
+          text: "Ignorar el saludo o tratar como “invisible” al personal.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <line x1="10" y1="115" x2="190" y2="115" stroke="#E2E8F0" stroke-width="3"/>
+            <circle cx="58" cy="42" r="13" fill="#FDBA74"/>
+            <path d="M46 40 Q58 28 70 40" fill="#1E293B"/>
+            <circle cx="55" cy="41" r="1.5" fill="#1E293B"/>
+            <circle cx="62" cy="41" r="1.5" fill="#1E293B"/>
+            <path d="M55 46 Q58 49 62 46" stroke="#1E293B" stroke-width="1.5" fill="none"/>
+            <path d="M43 57 L73 57 L76 92 L40 92 Z" fill="#0284C7"/>
+            <rect x="46" y="92" width="10" height="23" fill="#1E3A8A"/>
+            <rect x="60" y="92" width="10" height="23" fill="#1E3A8A"/>
+            <path d="M73 62 L88 48" stroke="#FDBA74" stroke-width="5" stroke-linecap="round"/>
+            <line x1="33" y1="35" x2="33" y2="112" stroke="#92400E" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M24 112 L42 112 L45 116 L21 116 Z" fill="#38BDF8"/>
+            <circle cx="145" cy="40" r="13" fill="#FED7AA"/>
+            <path d="M133 36 Q145 25 157 36" fill="#334155"/>
+            <path d="M130 55 L160 55 L163 94 L127 94 Z" fill="#475569"/>
+            <polygon points="145,55 141,72 145,76 149,72" fill="#D95D39"/>
+            <rect x="134" y="94" width="9" height="21" fill="#1E293B"/>
+            <rect x="148" y="94" width="9" height="21" fill="#1E293B"/>
+            <rect x="122" y="58" width="7" height="12" rx="1.5" fill="#0F172A"/>
+            <path d="M132 64 L126 64" stroke="#FED7AA" stroke-width="4" stroke-linecap="round"/>
+            <line x1="103" y1="25" x2="103" y2="105" stroke="#CBD5E1" stroke-width="2" stroke-dasharray="4 4"/>
+          </svg>`
+        },
+        concept: {
+          code: "1B",
+          title: "DISCRIMINACIÓN POR PUESTO",
+          text: "Todas las personas merecen el mismo respeto y saludo, sin importar su uniforme o labor.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <circle cx="100" cy="65" r="46" fill="#DBEAFE"/>
+            <circle cx="65" cy="48" r="11" fill="#1B4965"/>
+            <path d="M49 85 C49 68 81 68 81 85 Z" fill="#1B4965"/>
+            <rect x="91" y="58" width="18" height="4.5" rx="2" fill="#D95D39"/>
+            <rect x="91" y="67" width="18" height="4.5" rx="2" fill="#D95D39"/>
+            <circle cx="135" cy="48" r="11" fill="#1B4965"/>
+            <path d="M119 85 C119 68 151 68 151 85 Z" fill="#1B4965"/>
+          </svg>`
+        }
+      },
+      {
+        id: 2,
+        theme: "Acoso y Hostigamiento Sexual",
+        question: "¿A dónde acudirías en nuestro centro de trabajo si tú o una compañera sufren acoso o miradas incómodas?",
+        situation: {
+          code: "2A",
+          quote: "“¡Qué bien te ves hoy!”",
+          text: "Piropos, miradas morbosas o contacto físico sin permiso.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <rect x="20" y="82" width="75" height="8" rx="2" fill="#94A3B8"/>
+            <rect x="28" y="90" width="6" height="25" fill="#64748B"/>
+            <rect x="82" y="90" width="6" height="25" fill="#64748B"/>
+            <circle cx="68" cy="48" r="12" fill="#FDBA74"/>
+            <path d="M56 46 Q68 32 80 46 L82 60 L55 58 Z" fill="#334155"/>
+            <path d="M63 47 L66 48" stroke="#1E293B" stroke-width="1.5"/>
+            <path d="M63 53 Q66 51 69 53" stroke="#1E293B" stroke-width="1.5" fill="none"/>
+            <path d="M54 62 L82 62 L85 95 L52 95 Z" fill="#0284C7"/>
+            <path d="M55 68 L42 78" stroke="#FDBA74" stroke-width="4.5" stroke-linecap="round"/>
+            <rect x="33" y="75" width="12" height="6" rx="2" fill="#FACC15"/>
+            <circle cx="142" cy="42" r="13" fill="#FED7AA"/>
+            <path d="M130 38 Q142 28 154 38" fill="#1E293B"/>
+            <circle cx="137" cy="41" r="1.5" fill="#1E293B"/>
+            <circle cx="136" cy="48" r="2" fill="#D95D39"/>
+            <path d="M127 57 L157 57 L160 105 L124 105 Z" fill="#475569"/>
+            <text x="105" y="36" fill="#D95D39" font-size="16" font-weight="bold">♪</text>
+            <text x="116" y="26" fill="#D95D39" font-size="13" font-weight="bold">♫</text>
+            <path d="M126 44 L92 47" stroke="#D95D39" stroke-width="1.5" stroke-dasharray="3 3"/>
+          </svg>`
+        },
+        concept: {
+          code: "2B",
+          title: "ACOSO Y HOSTIGAMIENTO SEXUAL",
+          text: "Nadie tiene derecho a invadir tu espacio ni hacer comentarios sobre tu cuerpo.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <circle cx="100" cy="65" r="46" fill="#FEE2E2"/>
+            <path d="M88 88 L88 52 C88 49 92 49 92 52 L92 66 L94 66 L94 45 C94 42 98 42 98 45 L98 65 L100 65 L100 44 C100 41 104 41 104 44 L104 65 L106 65 L106 48 C106 45 110 45 110 48 L110 72 L115 65 C117 62 121 65 119 68 L111 86 C109 91 104 94 98 94 L94 94 C90 94 88 91 88 88 Z" fill="#D95D39"/>
+            <circle cx="100" cy="65" r="40" stroke="#D95D39" stroke-width="4" fill="none"/>
+          </svg>`
+        }
+      },
+      {
+        id: 3,
+        theme: "Violencia Psicológica",
+        question: "¿Cómo debe comunicarse un jefe o supervisor cuando necesita señalar un detalle en la limpieza?",
+        situation: {
+          code: "3A",
+          quote: "“¡¿No sirves ni para barrer bien?!”",
+          text: "Gritar, insultar o humillar frente a otras personas.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <line x1="10" y1="115" x2="190" y2="115" stroke="#E2E8F0" stroke-width="3"/>
+            <circle cx="62" cy="40" r="13" fill="#FCA5A5"/>
+            <path d="M52 35 L60 38 M72 35 L64 38" stroke="#7F1D1D" stroke-width="2"/>
+            <ellipse cx="64" cy="46" rx="4" ry="3" fill="#7F1D1D"/>
+            <path d="M47 55 L77 55 L80 95 L44 95 Z" fill="#334155"/>
+            <path d="M77 62 L106 56" stroke="#FCA5A5" stroke-width="5" stroke-linecap="round"/>
+            <path d="M82 36 L94 30 M84 43 L98 42 M82 50 L94 54" stroke="#D95D39" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="142" cy="48" r="12" fill="#FDBA74"/>
+            <path d="M131 44 Q142 33 153 44" fill="#1E293B"/>
+            <path d="M138 53 Q142 50 146 53" stroke="#1E293B" stroke-width="1.5" fill="none"/>
+            <path d="M128 62 L156 62 L159 96 L125 96 Z" fill="#0284C7"/>
+            <rect x="132" y="96" width="8" height="19" fill="#1E3A8A"/>
+            <rect x="145" y="96" width="8" height="19" fill="#1E3A8A"/>
+            <line x1="166" y1="36" x2="166" y2="110" stroke="#92400E" stroke-width="3"/>
+            <path d="M159 106 L173 106 L176 115 L156 115 Z" fill="#F59E0B"/>
+          </svg>`
+        },
+        concept: {
+          code: "3B",
+          title: "VIOLENCIA PSICOLÓGICA",
+          text: "Corregir un error no da derecho a gritar, insultar ni humillar en público.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <circle cx="100" cy="65" r="46" fill="#DBEAFE"/>
+            <polygon points="72,58 92,58 118,42 118,88 92,72 72,72" fill="#1B4965"/>
+            <rect x="76" y="72" width="8" height="14" rx="2" fill="#1B4965"/>
+            <circle cx="100" cy="65" r="38" stroke="#D95D39" stroke-width="5" fill="none"/>
+            <line x1="73" y1="38" x2="127" y2="92" stroke="#D95D39" stroke-width="5"/>
+          </svg>`
+        }
+      },
+      {
+        id: 4,
+        theme: "Acoso Laboral (Mobbing)",
+        question: "¿Cómo distinguimos entre una emergencia operativa real y una sobrecarga de trabajo usada como castigo?",
+        situation: {
+          code: "4A",
+          quote: "“Tú limpias todos los pisos hoy solo.”",
+          text: "Cargas de trabajo excesivas como castigo o venganza.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <line x1="10" y1="115" x2="190" y2="115" stroke="#E2E8F0" stroke-width="3"/>
+            <circle cx="85" cy="46" r="12" fill="#FDBA74"/>
+            <path d="M74 42 Q85 32 96 42" fill="#1E293B"/>
+            <path d="M68 42 Q65 47 68 49 Q71 47 68 42 Z" fill="#38BDF8"/>
+            <path d="M102 40 Q99 45 102 47 Q105 45 102 40 Z" fill="#38BDF8"/>
+            <path d="M71 60 L99 60 L102 95 L68 95 Z" fill="#0284C7"/>
+            <rect x="74" y="95" width="9" height="20" fill="#1E3A8A"/>
+            <rect x="87" y="95" width="9" height="20" fill="#1E3A8A"/>
+            <polygon points="24,95 44,95 41,115 27,115" fill="#D95D39"/>
+            <polygon points="46,95 66,95 63,115 49,115" fill="#F59E0B"/>
+            <polygon points="35,76 55,76 52,95 38,95" fill="#0284C7"/>
+            <rect x="115" y="32" width="32" height="58" rx="2" fill="white" stroke="#94A3B8" stroke-width="2"/>
+            <line x1="120" y1="42" x2="142" y2="42" stroke="#D95D39" stroke-width="2"/>
+            <line x1="120" y1="50" x2="142" y2="50" stroke="#64748B" stroke-width="2"/>
+            <line x1="120" y1="58" x2="142" y2="58" stroke="#64748B" stroke-width="2"/>
+            <line x1="120" y1="66" x2="142" y2="66" stroke="#64748B" stroke-width="2"/>
+            <line x1="120" y1="74" x2="142" y2="74" stroke="#64748B" stroke-width="2"/>
+            <line x1="120" y1="82" x2="142" y2="82" stroke="#64748B" stroke-width="2"/>
+          </svg>`
+        },
+        concept: {
+          code: "4B",
+          title: "ACOSO LABORAL (MOBBING)",
+          text: "Repartir tareas injustas para cansar o aburrir a alguien es una forma de violencia.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <circle cx="100" cy="65" r="46" fill="#DBEAFE"/>
+            <rect x="97" y="34" width="6" height="62" rx="2" fill="#1B4965"/>
+            <rect x="80" y="94" width="40" height="6" rx="3" fill="#1B4965"/>
+            <line x1="62" y1="46" x2="138" y2="46" stroke="#1B4965" stroke-width="4" stroke-linecap="round"/>
+            <path d="M50 72 Q62 82 74 72 Z" fill="#D95D39"/>
+            <line x1="62" y1="46" x2="52" y2="72" stroke="#64748B" stroke-width="1.5"/>
+            <line x1="62" y1="46" x2="72" y2="72" stroke="#64748B" stroke-width="1.5"/>
+            <path d="M126 72 Q138 82 150 72 Z" fill="#D95D39"/>
+            <line x1="138" y1="46" x2="128" y2="72" stroke="#64748B" stroke-width="1.5"/>
+            <line x1="138" y1="46" x2="148" y2="72" stroke="#64748B" stroke-width="1.5"/>
+          </svg>`
+        }
+      },
+      {
+        id: 5,
+        theme: "Discriminación por Origen Étnico",
+        question: "¿Cómo podemos fortalecer el compañerismo y el orgullo por nuestras distintas regiones y lenguas originarias?",
+        situation: {
+          code: "5A",
+          quote: "“Habla bien, no se te entiende nada.”",
+          text: "Burlarse de la lengua, el acento o el lugar de origen.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <line x1="10" y1="115" x2="190" y2="115" stroke="#E2E8F0" stroke-width="3"/>
+            <circle cx="55" cy="45" r="12" fill="#D97706"/>
+            <path d="M44 41 Q55 31 66 41" fill="#1E293B"/>
+            <path d="M41 59 L69 59 L72 95 L38 95 Z" fill="#0284C7"/>
+            <rect x="44" y="95" width="9" height="20" fill="#1E3A8A"/>
+            <rect x="57" y="95" width="9" height="20" fill="#1E3A8A"/>
+            <rect x="20" y="14" width="44" height="18" rx="8" fill="#10B981"/>
+            <text x="42" y="26" text-anchor="middle" fill="white" font-size="10" font-weight="bold">✿ Pjiekakjoo</text>
+            <circle cx="125" cy="45" r="11" fill="#FED7AA"/>
+            <path d="M121 48 Q125 53 129 48" fill="#1E293B"/>
+            <path d="M112 58 L138 58 L140 95 L110 95 Z" fill="#64748B"/>
+            <path d="M112 64 L94 56" stroke="#FED7AA" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="162" cy="47" r="11" fill="#FDBA74"/>
+            <path d="M158 50 Q162 55 166 50" fill="#1E293B"/>
+            <path d="M149 60 L175 60 L177 95 L147 95 Z" fill="#475569"/>
+            <text x="142" y="28" fill="#D95D39" font-size="11" font-weight="bold">JAJAJA</text>
+          </svg>`
+        },
+        concept: {
+          code: "5B",
+          title: "DISCRIMINACIÓN POR ORIGEN",
+          text: "Nuestras raíces, acentos y lenguas son motivo de orgullo, nunca de burla.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <circle cx="100" cy="65" r="46" fill="#DBEAFE"/>
+            <rect x="56" y="38" width="44" height="26" rx="10" fill="#1B4965"/>
+            <polygon points="68,64 76,64 66,73" fill="#1B4965"/>
+            <circle cx="71" cy="51" r="2.5" fill="white"/>
+            <circle cx="78" cy="51" r="2.5" fill="white"/>
+            <circle cx="85" cy="51" r="2.5" fill="white"/>
+            <rect x="100" y="56" width="44" height="26" rx="10" fill="#D95D39"/>
+            <polygon points="124,82 132,82 134,91" fill="#D95D39"/>
+            <path d="M115 69 L121 74 L130 64" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          </svg>`
+        }
+      },
+      {
+        id: 6,
+        theme: "Estereotipos de Género",
+        question: "¿Por qué es importante que hombres y mujeres puedan realizar cualquier tarea operativa en igualdad de oportunidades?",
+        situation: {
+          code: "6A",
+          quote: "“Eso pesado es solo para hombres.”",
+          text: "Dividir tareas por prejuicios de “hombres” o “mujeres”.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <line x1="10" y1="115" x2="190" y2="115" stroke="#E2E8F0" stroke-width="3"/>
+            <circle cx="52" cy="45" r="12" fill="#FDBA74"/>
+            <path d="M40 43 Q52 30 64 43 L66 56 L38 56 Z" fill="#1E293B"/>
+            <path d="M38 59 L66 59 L69 95 L35 95 Z" fill="#0284C7"/>
+            <rect x="42" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <rect x="54" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <line x1="28" y1="54" x2="28" y2="85" stroke="#92400E" stroke-width="3"/>
+            <circle cx="28" cy="46" r="10" fill="#F472B6"/>
+            <circle cx="148" cy="45" r="12" fill="#FDBA74"/>
+            <path d="M137 41 Q148 31 159 41" fill="#1E293B"/>
+            <path d="M134 59 L162 59 L165 95 L131 95 Z" fill="#0284C7"/>
+            <rect x="138" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <rect x="150" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <rect x="167" y="64" width="18" height="24" rx="4" fill="#38BDF8"/>
+            <rect x="172" y="59" width="8" height="5" fill="#0284C7"/>
+            <circle cx="100" cy="65" r="14" fill="#FEE2E2" stroke="#D95D39" stroke-width="2.5"/>
+            <line x1="91" y1="56" x2="109" y2="74" stroke="#D95D39" stroke-width="2.5"/>
+          </svg>`
+        },
+        concept: {
+          code: "6B",
+          title: "ESTEREOTIPOS DE GÉNERO",
+          text: "Hombres y mujeres tenemos la misma capacidad para realizar cualquier tarea operativa.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <circle cx="100" cy="65" r="46" fill="#DBEAFE"/>
+            <circle cx="68" cy="46" r="10" fill="#1B4965"/>
+            <path d="M55 86 C55 66 81 66 81 86 Z" fill="#1B4965"/>
+            <circle cx="132" cy="46" r="10" fill="#1B4965"/>
+            <path d="M119 86 C119 66 145 66 145 86 Z" fill="#1B4965"/>
+            <rect x="83" y="58" width="34" height="26" rx="3" fill="#D95D39"/>
+            <line x1="83" y1="68" x2="117" y2="68" stroke="#FFF3EF" stroke-width="2"/>
+          </svg>`
+        }
+      },
+      {
+        id: 7,
+        theme: "Negligencia y Riesgo Físico",
+        question: "¿Qué debemos hacer si nos piden manejar químicos fuertes sin guantes, cubrebocas o equipo de protección?",
+        situation: {
+          code: "7A",
+          quote: "“Limpia con cloro así, no hay guantes.”",
+          text: "Obligar a trabajar sin equipo de protección.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <line x1="10" y1="115" x2="190" y2="115" stroke="#E2E8F0" stroke-width="3"/>
+            <circle cx="62" cy="45" r="12" fill="#FDBA74"/>
+            <path d="M51 41 Q62 31 73 41" fill="#1E293B"/>
+            <path d="M48 59 L76 59 L79 95 L45 95 Z" fill="#0284C7"/>
+            <rect x="52" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <rect x="64" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <rect x="82" y="64" width="18" height="26" rx="3" fill="#FACC15" stroke="#B45309" stroke-width="1.5"/>
+            <polygon points="91,70 86,82 96,82" fill="#DC2626"/>
+            <circle cx="80" cy="76" r="4" fill="#EF4444"/>
+            <circle cx="145" cy="43" r="12" fill="#FED7AA"/>
+            <path d="M130 57 L160 57 L163 95 L127 95 Z" fill="#475569"/>
+            <path d="M127 62 L116 54 M163 62 L174 54" stroke="#FED7AA" stroke-width="4" stroke-linecap="round"/>
+            <text x="145" y="25" text-anchor="middle" fill="#64748B" font-size="14" font-weight="bold">?</text>
+          </svg>`
+        },
+        concept: {
+          code: "7B",
+          title: "DERECHO A LA SALUD Y SEGURIDAD",
+          text: "La institución debe darte equipo de protección; cuidar tu salud es obligatorio.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <path d="M100 22 L138 36 L138 66 C138 88 121 102 100 110 C79 102 62 88 62 66 L62 36 Z" fill="#10B981"/>
+            <path d="M100 28 L132 40 L132 65 C132 84 117 96 100 103 C83 96 68 84 68 65 L68 40 Z" fill="#059669"/>
+            <path d="M84 66 L95 77 L118 52" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`
+        }
+      },
+      {
+        id: 8,
+        theme: "Discriminación por Maternidad",
+        question: "¿Sabías que despedir o reducir horas por embarazo es ilegal? ¿A qué instancia acudirías para denunciarlo?",
+        situation: {
+          code: "8A",
+          quote: "“Embarazada ya no nos sirves igual.”",
+          text: "Quitar horas, despedir o rechazar por embarazo.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <line x1="10" y1="115" x2="190" y2="115" stroke="#E2E8F0" stroke-width="3"/>
+            <circle cx="58" cy="43" r="12" fill="#FDBA74"/>
+            <path d="M46 41 Q58 29 70 41 L72 56 L44 56 Z" fill="#1E293B"/>
+            <path d="M45 58 L70 58 C78 70 78 84 70 95 L45 95 Z" fill="#0284C7"/>
+            <rect x="49" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <rect x="60" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <rect x="78" y="62" width="14" height="18" fill="white" stroke="#64748B" stroke-width="1.5"/>
+            <rect x="112" y="75" width="65" height="40" fill="#94A3B8"/>
+            <circle cx="145" cy="45" r="12" fill="#FED7AA"/>
+            <path d="M130 59 L160 59 L162 75 L128 75 Z" fill="#334155"/>
+            <path d="M128 65 L110 62" stroke="#FED7AA" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="105" cy="54" r="9" fill="#FEE2E2"/>
+            <path d="M101 50 L109 58 M109 50 L101 58" stroke="#D95D39" stroke-width="2"/>
+          </svg>`
+        },
+        concept: {
+          code: "8B",
+          title: "PROTECCIÓN A LA MATERNIDAD",
+          text: "El embarazo y el cuidado de los hijos nunca deben ser motivo de despido o castigo.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <circle cx="100" cy="65" r="46" fill="#DBEAFE"/>
+            <path d="M62 56 C62 32 138 32 138 56 Z" fill="#1B4965"/>
+            <path d="M100 56 L100 94 C100 99 93 99 93 94" stroke="#1B4965" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M100 84 C100 84 85 74 85 65 C85 60 89 57 93 57 C96 57 99 59 100 61 C101 59 104 57 107 57 C111 57 115 60 115 65 C115 74 100 84 100 84 Z" fill="#D95D39"/>
+          </svg>`
+        }
+      },
+      {
+        id: 9,
+        theme: "Discriminación por Edad (Edadismo)",
+        question: "¿Qué valor y experiencia aportan las compañeras y compañeros adultos mayores a nuestra cuadrilla?",
+        situation: {
+          code: "9A",
+          quote: "“Ya estás grande, deberías irte a descansar.”",
+          text: "Menospreciar o excluir por ser adulto mayor.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <line x1="10" y1="115" x2="190" y2="115" stroke="#E2E8F0" stroke-width="3"/>
+            <rect x="20" y="25" width="44" height="54" fill="#E0F2FE" stroke="#38BDF8" stroke-width="2"/>
+            <circle cx="76" cy="46" r="12" fill="#FDBA74"/>
+            <path d="M65 42 Q76 31 87 42" fill="#CBD5E1"/>
+            <circle cx="73" cy="46" r="3" stroke="#475569" stroke-width="1" fill="none"/>
+            <path d="M62 60 L90 60 L93 95 L59 95 Z" fill="#0284C7"/>
+            <rect x="66" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <rect x="78" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <path d="M62 65 L48 55" stroke="#FDBA74" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="145" cy="45" r="12" fill="#FED7AA"/>
+            <path d="M134 41 Q145 31 156 41" fill="#1E293B"/>
+            <path d="M131 59 L159 59 L162 95 L128 95 Z" fill="#64748B"/>
+            <rect x="135" y="95" width="8" height="20" fill="#1E293B"/>
+            <rect x="147" y="95" width="8" height="20" fill="#1E293B"/>
+            <circle cx="122" cy="34" r="11" fill="white" stroke="#D95D39" stroke-width="2.5"/>
+            <path d="M122 28 L122 34 L126 36" stroke="#D95D39" stroke-width="2" fill="none"/>
+          </svg>`
+        },
+        concept: {
+          code: "9B",
+          title: "IGUALDAD SIN IMPORTAR LA EDAD",
+          text: "La experiencia y el esfuerzo de las personas mayores tienen el mismo valor.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <circle cx="100" cy="65" r="46" fill="#DBEAFE"/>
+            <circle cx="76" cy="46" r="11" fill="#64748B"/>
+            <path d="M60 86 C60 66 92 66 92 86 Z" fill="#1B4965"/>
+            <circle cx="124" cy="46" r="11" fill="#1B4965"/>
+            <path d="M108 86 C108 66 140 66 140 86 Z" fill="#D95D39"/>
+            <polygon points="100,26 103,33 111,33 105,38 107,45 100,41 93,45 95,38 89,33 97,33" fill="#F59E0B"/>
+          </svg>`
+        }
+      },
+      {
+        id: 10,
+        theme: "Coacción e Intimidación Laboral",
+        question: "¿Qué derechos tenemos respecto a nuestro horario de salida y qué hacemos si alguien nos amenaza con despedirnos?",
+        situation: {
+          code: "10A",
+          quote: "“Te quedas extra sin paga o te vas.”",
+          text: "Amenazar con el despido para exigir horas gratis.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#FFF8F6"/>
+            <line x1="10" y1="115" x2="190" y2="115" stroke="#E2E8F0" stroke-width="3"/>
+            <circle cx="38" cy="30" r="14" fill="white" stroke="#1B4965" stroke-width="2.5"/>
+            <path d="M38 22 L38 30 L44 33" stroke="#D95D39" stroke-width="2" fill="none"/>
+            <circle cx="65" cy="48" r="12" fill="#FDBA74"/>
+            <path d="M51 62 L79 62 L82 95 L48 95 Z" fill="#0284C7"/>
+            <rect x="55" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <rect x="67" y="95" width="8" height="20" fill="#1E3A8A"/>
+            <circle cx="132" cy="42" r="13" fill="#FED7AA"/>
+            <path d="M117 57 L147 57 L150 95 L114 95 Z" fill="#334155"/>
+            <rect x="121" y="95" width="9" height="20" fill="#1E293B"/>
+            <rect x="134" y="95" width="9" height="20" fill="#1E293B"/>
+            <rect x="94" y="54" width="20" height="26" fill="white" stroke="#D95D39" stroke-width="2"/>
+            <line x1="98" y1="61" x2="110" y2="61" stroke="#64748B" stroke-width="1.5"/>
+            <line x1="98" y1="67" x2="110" y2="67" stroke="#64748B" stroke-width="1.5"/>
+            <text x="104" y="77" text-anchor="middle" fill="#D95D39" font-size="9" font-weight="bold">!</text>
+          </svg>`
+        },
+        concept: {
+          code: "10B",
+          title: "COACCIÓN E INTIMIDACIÓN",
+          text: "Nadie puede amenazarte ni obligarte a regalar tu trabajo fuera de horario.",
+          svg: `<svg viewBox="0 0 200 130" class="w-full h-full">
+            <rect width="200" height="130" fill="#F0F7FB"/>
+            <circle cx="100" cy="65" r="46" fill="#DBEAFE"/>
+            <rect x="66" y="34" width="46" height="60" rx="4" fill="white" stroke="#1B4965" stroke-width="3"/>
+            <line x1="75" y1="48" x2="103" y2="48" stroke="#94A3B8" stroke-width="3" stroke-linecap="round"/>
+            <line x1="75" y1="58" x2="103" y2="58" stroke="#94A3B8" stroke-width="3" stroke-linecap="round"/>
+            <path d="M77 74 L86 83 L103 66" stroke="#10B981" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <circle cx="124" cy="76" r="18" fill="#1B4965" stroke="white" stroke-width="2.5"/>
+            <path d="M124 66 L124 76 L131 76" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          </svg>`
+        }
+      }
+    ];
+
+    // Variables de estado
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let attempts = 0;
+    let lockBoard = false;
+
+    // Variables de temporizador
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let timerRunning = false;
+    let timerStartedOnce = false;
+
+    window.onload = function() {
+      initGame();
+    };
+
+    function initGame() {
+      cards = [];
+      flippedCards = [];
+      matchedPairs = 0;
+      attempts = 0;
+      lockBoard = false;
+
+      resetTimer();
+      updateStats();
+      setFeedback('Selecciona una tarjeta <span class="text-[#D95D39]">Naranja (Situación)</span> y una tarjeta <span class="text-[#1B4965]">Azul (Concepto)</span> para formar un par.', 'neutral');
+
+      PAIRS_DATA.forEach(pair => {
+        cards.push({
+          uid: `${pair.id}-A`,
+          pairId: pair.id,
+          type: 'situation',
+          code: pair.situation.code,
+          quote: pair.situation.quote,
+          text: pair.situation.text,
+          svg: pair.situation.svg,
+          matched: false
+        });
+        cards.push({
+          uid: `${pair.id}-B`,
+          pairId: pair.id,
+          type: 'concept',
+          code: pair.concept.code,
+          title: pair.concept.title,
+          text: pair.concept.text,
+          svg: pair.concept.svg,
+          matched: false
+        });
+      });
+
+      // Mezcla aleatoria Fisher-Yates
+      for (let i = cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+      }
+
+      renderBoard();
+    }
+
+    function renderBoard() {
+      const board = document.getElementById('memory-board');
+      board.innerHTML = '';
+
+      cards.forEach((card, index) => {
+        const isSituation = card.type === 'situation';
+        const cardEl = document.createElement('div');
+        cardEl.className = 'perspective-1000 card-proportion cursor-pointer select-none';
+        cardEl.dataset.index = index;
+        cardEl.onclick = () => handleCardClick(index);
+
+        // Reverso (boca abajo)
+        const frontCoverHTML = isSituation
+          ? `<div class="card-face bg-[#D95D39] p-2 sm:p-2.5 shadow-md border-2 border-white flex flex-col justify-between hover:brightness-105 transition">
+               <div class="border border-white/40 rounded-xl w-full h-full flex flex-col items-center justify-center p-2 text-center text-white">
+                 <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                   <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                   </svg>
+                 </div>
+                 <span class="font-heading font-extrabold text-xs sm:text-sm tracking-wide uppercase">Situación</span>
+                 <span class="text-[10px] sm:text-xs font-semibold text-white/85 mt-0.5">Tarjeta A</span>
+               </div>
+             </div>`
+          : `<div class="card-face bg-[#1B4965] p-2 sm:p-2.5 shadow-md border-2 border-white flex flex-col justify-between hover:brightness-110 transition">
+               <div class="border border-white/40 rounded-xl w-full h-full flex flex-col items-center justify-center p-2 text-center text-white">
+                 <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                   <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                   </svg>
+                 </div>
+                 <span class="font-heading font-extrabold text-xs sm:text-sm tracking-wide uppercase">Concepto</span>
+                 <span class="text-[10px] sm:text-xs font-semibold text-white/85 mt-0.5">Tarjeta B</span>
+               </div>
+             </div>`;
+
+        // Anverso (descubierta)
+        const revealedHTML = isSituation
+          ? `<div class="card-face card-back bg-white border-[4px] border-[#D95D39] shadow-md flex flex-col justify-between p-2 sm:p-2.5">
+               <div class="flex items-center justify-between">
+                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#FFF3EF] text-[#D95D39]">SITUACIÓN • ${card.code}</span>
+               </div>
+               <div class="w-full h-24 sm:h-28 rounded-xl overflow-hidden my-1 border border-slate-100 bg-[#FFF8F6]">
+                 ${card.svg}
+               </div>
+               <div class="bg-[#FFF3EF] rounded-lg px-2 py-1 text-center">
+                 <p class="text-[11px] sm:text-xs font-extrabold text-[#D95D39] leading-tight">${card.quote}</p>
+               </div>
+               <p class="text-[10px] sm:text-[11px] font-bold text-slate-700 text-center leading-snug mt-1 line-clamp-3">
+                 ${card.text}
+               </p>
+             </div>`
+          : `<div class="card-face card-back bg-white border-[4px] border-[#1B4965] shadow-md flex flex-col justify-between p-2 sm:p-2.5">
+               <div class="flex items-center justify-between">
+                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#EFF6FA] text-[#1B4965]">DERECHO • ${card.code}</span>
+               </div>
+               <div class="w-full h-20 sm:h-24 rounded-xl overflow-hidden my-1 flex items-center justify-center">
+                 ${card.svg}
+               </div>
+               <div class="text-center space-y-1 my-auto">
+                 <h4 class="font-heading font-extrabold text-[11px] sm:text-xs text-[#1B4965] leading-tight uppercase">
+                   ${card.title}
+                 </h4>
+                 <p class="text-[10px] sm:text-[11px] font-bold text-slate-600 leading-snug line-clamp-3">
+                   ${card.text}
+                 </p>
+               </div>
+             </div>`;
+
+        cardEl.innerHTML = `
+          <div class="card-inner">
+            ${frontCoverHTML}
+            ${revealedHTML}
+          </div>
+        `;
+        board.appendChild(cardEl);
+      });
+    }
+
+    function handleCardClick(index) {
+      if (lockBoard) return;
+      const card = cards[index];
+      if (card.matched) return;
+      if (flippedCards.some(item => item.index === index)) return;
+
+      // Iniciar reloj automáticamente en el primer movimiento
+      if (!timerStartedOnce) {
+        timerStartedOnce = true;
+        startTimer();
+      }
+
+      const cardEl = document.querySelector(`[data-index="${index}"]`);
+      cardEl.classList.add('card-flipped');
+      flippedCards.push({ index, card });
+
+      if (flippedCards.length === 1) {
+        if (card.type === 'situation') {
+          setFeedback('¡Bien! Ahora busca su tarjeta <span class="text-[#1B4965]">Azul (Concepto / Derecho)</span> correspondiente.', 'neutral');
+        } else {
+          setFeedback('¡Bien! Ahora busca la tarjeta <span class="text-[#D95D39]">Naranja (Situación Cotidiana)</span> que corresponde a este derecho.', 'neutral');
+        }
+        return;
+      }
+
+      if (flippedCards.length === 2) {
+        attempts++;
+        updateStats();
+        lockBoard = true;
+
+        const [first, second] = flippedCards;
+
+        // Validar que sean una Naranja y una Azul
+        if (first.card.type === second.card.type) {
+          setFeedback('Volteaste dos tarjetas del mismo color. Combina siempre una <strong>Naranja</strong> con una <strong>Azul</strong>.', 'warning');
+          shakeCards(first.index, second.index);
+          setTimeout(() => {
+            unflipCards(first.index, second.index);
+          }, 1150);
+          return;
+        }
+
+        // Validar coincidencia de par
+        if (first.card.pairId === second.card.pairId) {
+          first.card.matched = true;
+          second.card.matched = true;
+          matchedPairs++;
+          updateStats();
+
+          const matchedData = PAIRS_DATA.find(p => p.id === first.card.pairId);
+          setFeedback(`¡Excelente! Encontraste el par: <strong>${matchedData.theme}</strong>.`, 'success');
+
+          setTimeout(() => {
+            markMatchedVisual(first.index, second.index);
+            flippedCards = [];
+            lockBoard = false;
+            openMatchModal(first.card.pairId);
+          }, 600);
+        } else {
+          setFeedback('No coinciden. Observa la escena y el concepto e inténtalo de nuevo.', 'error');
+          shakeCards(first.index, second.index);
+          setTimeout(() => {
+            unflipCards(first.index, second.index);
+          }, 1350);
+        }
+      }
+    }
+
+    function shakeCards(idx1, idx2) {
+      [idx1, idx2].forEach(idx => {
+        const el = document.querySelector(`[data-index="${idx}"]`);
+        if (el) {
+          el.classList.add('animate-shake');
+          setTimeout(() => el.classList.remove('animate-shake'), 400);
+        }
+      });
+    }
+
+    function unflipCards(idx1, idx2) {
+      document.querySelector(`[data-index="${idx1}"]`)?.classList.remove('card-flipped');
+      document.querySelector(`[data-index="${idx2}"]`)?.classList.remove('card-flipped');
+      flippedCards = [];
+      lockBoard = false;
+    }
+
+    function markMatchedVisual(idx1, idx2) {
+      [idx1, idx2].forEach(idx => {
+        const el = document.querySelector(`[data-index="${idx}"]`);
+        if (el) {
+          el.classList.add('opacity-85', 'scale-[0.98]', 'transition-all', 'duration-300');
+        }
+      });
+    }
+
+    // Vista previa rápida para facilitar dinámicas grupales (4 segundos)
+    function triggerQuickPeek() {
+      if (lockBoard) return;
+      lockBoard = true;
+      const btn = document.getElementById('btn-peek');
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+
+      setFeedback('👀 <strong>Vista previa activa (4 segundos):</strong> Observen la ubicación de las tarjetas...', 'warning');
+
+      // Voltear todas las no emparejadas
+      cards.forEach((card, idx) => {
+        if (!card.matched) {
+          document.querySelector(`[data-index="${idx}"]`)?.classList.add('card-flipped');
+        }
+      });
+
+      setTimeout(() => {
+        cards.forEach((card, idx) => {
+          if (!card.matched && !flippedCards.some(f => f.index === idx)) {
+            document.querySelector(`[data-index="${idx}"]`)?.classList.remove('card-flipped');
+          }
+        });
+        lockBoard = false;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+        setFeedback('¡Listo! Ahora intenten encontrar los pares.', 'neutral');
+      }, 4000);
+    }
+
+    // Funciones del Temporizador
+    function startTimer() {
+      if (timerRunning) return;
+      timerRunning = true;
+      updateTimerIcon();
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        document.getElementById('stat-timer').textContent = formatTime(secondsElapsed);
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      timerRunning = false;
+      clearInterval(timerInterval);
+      updateTimerIcon();
+    }
+
+    function toggleTimer() {
+      if (timerRunning) {
+        pauseTimer();
+      } else {
+        timerStartedOnce = true;
+        startTimer();
+      }
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      secondsElapsed = 0;
+      timerStartedOnce = false;
+      document.getElementById('stat-timer').textContent = '00:00';
+      updateTimerIcon();
+    }
+
+    function updateTimerIcon() {
+      const pauseIcon = document.getElementById('icon-timer-pause');
+      const playIcon = document.getElementById('icon-timer-play');
+      if (timerRunning) {
+        pauseIcon.classList.remove('hidden');
+        playIcon.classList.add('hidden');
+      } else {
+        pauseIcon.classList.add('hidden');
+        playIcon.classList.remove('hidden');
+      }
+    }
+
+    function formatTime(totalSec) {
+      const mins = String(Math.floor(totalSec / 60)).padStart(2, '0');
+      const secs = String(totalSec % 60).padStart(2, '0');
+      return `${mins}:${secs}`;
+    }
+
+    function updateStats() {
+      document.getElementById('stat-pairs').textContent = `${matchedPairs} / 10`;
+      document.getElementById('stat-attempts').textContent = attempts;
+    }
+
+    function setFeedback(html, type) {
+      const box = document.getElementById('game-feedback');
+      box.innerHTML = html;
+      box.className = "text-center text-xs sm:text-sm font-bold py-2.5 px-4 rounded-xl border shadow-2xs transition-all ";
+      if (type === 'success') {
+        box.className += "bg-emerald-50 text-emerald-800 border-emerald-200";
+      } else if (type === 'warning') {
+        box.className += "bg-amber-50 text-amber-800 border-amber-200";
+      } else if (type === 'error') {
+        box.className += "bg-rose-50 text-rose-800 border-rose-200";
+      } else {
+        box.className += "bg-white text-slate-700 border-slate-200";
+      }
+    }
+
+    // Modal de Reflexión Pedagógica
+    function openMatchModal(pairId) {
+      const pair = PAIRS_DATA.find(p => p.id === pairId);
+      if (!pair) return;
+
+      document.getElementById('modal-pair-title').textContent = `Par ${pair.id}: ${pair.theme}`;
+      document.getElementById('modal-pair-badge').textContent = `${matchedPairs} / 10`;
+
+      document.getElementById('modal-sit-code').textContent = `Situación • ${pair.situation.code}`;
+      document.getElementById('modal-sit-svg').innerHTML = pair.situation.svg;
+      document.getElementById('modal-sit-quote').textContent = pair.situation.quote;
+      document.getElementById('modal-sit-desc').textContent = pair.situation.text;
+
+      document.getElementById('modal-con-code').textContent = `Concepto • ${pair.concept.code}`;
+      document.getElementById('modal-con-svg').innerHTML = pair.concept.svg;
+      document.getElementById('modal-con-title').textContent = pair.concept.title;
+      document.getElementById('modal-con-desc').textContent = pair.concept.text;
+
+      document.getElementById('modal-question').textContent = pair.question;
+
+      const modal = document.getElementById('match-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeMatchModal() {
+      const modal = document.getElementById('match-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+
+      if (matchedPairs === 10) {
+        pauseTimer();
+        document.getElementById('win-attempts').textContent = attempts;
+        document.getElementById('win-time').textContent = formatTime(secondsElapsed);
+        const winModal = document.getElementById('win-modal');
+        winModal.classList.remove('hidden');
+        winModal.classList.add('flex');
+      }
+    }
+
+    function closeWinModal() {
+      const winModal = document.getElementById('win-modal');
+      winModal.classList.add('hidden');
+      winModal.classList.remove('flex');
+    }
+  </script>
+</body>
+</html>
